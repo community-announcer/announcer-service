@@ -9,12 +9,23 @@ install:
 - govendor sync
 jobs:
   include:
-    - stage: test
+    - stage: Test
       script: go test
-    - stage: deploy
+    - stage: Build Docker Image
       script:
+        - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+        - docker build -f Dockerfile -t communityannouncer/announcer-service .
+        - docker push communityannouncer/announcer-service
+    - stage: Deploy to Staging
+      script:
+        - docker pull communityannouncer/announcer-service
+        - docker tag communityannouncer/announcer-service registry.heroku.com/community-announcer-staging/web
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin registry.heroku.com
-        - docker build -f Dockerfile -t registry.heroku.com/community-announcer/web .
+        - docker push registry.heroku.com/community-announcer-staging/web
+    - stage: Integration Test
+      script: docker run -it --rm -v $(pwd)/blueprints:/blueprints --entrypoint dredd burakince/docker-dredd /blueprints/*.md https://community-announcer-staging.herokuapp.com
+    - stage: Deploy to Production
+      script:
+        - docker pull communityannouncer/announcer-service
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin registry.heroku.com
         - docker push registry.heroku.com/community-announcer/web
-    - stage: integration test
-      script: docker run -it --rm -v $(pwd)/blueprints:/blueprints --entrypoint dredd burakince/docker-dredd /blueprints/*.md https://community-announcer.herokuapp.com
