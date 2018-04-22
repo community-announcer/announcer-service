@@ -1,6 +1,24 @@
 FORMAT: 1A
 
-# GET /ping
+# Community Announcer API
+In this API makes your community announcements.
+
+## Health Check [/ping]
+
+### Retrieve a Pong Message [GET]
+This action returns Pong message.
+
 + Response 200 (text/plain)
 
-        Pong
+    + Headers
+
+            server: Cowboy
+            connection: close
+            content-type: text/plain; charset=utf-8
+            date: Sun, 22 Apr 2018 20:55:42 GMT
+            content-length: 4
+            via: 1.1 vegur
+
+    + Body
+
+            Pong

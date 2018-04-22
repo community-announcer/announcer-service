@@ -16,5 +16,5 @@ jobs:
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin registry.heroku.com
         - docker build -f Dockerfile -t registry.heroku.com/community-announcer/web .
         - docker push registry.heroku.com/community-announcer/web
-    - stage: integration-test
+    - stage: integration test
       script: docker run -it --rm -v $(pwd)/blueprints:/blueprints --entrypoint dredd burakince/docker-dredd /blueprints/*.md https://community-announcer.herokuapp.com
