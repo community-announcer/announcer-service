@@ -8,7 +8,7 @@ In this API makes your community announcements.
 ### Retrieve a Pong Message [GET]
 This action returns Pong message.
 
-+ Response 200 (text/plain)
++ Response 200
 
     + Headers
 
@@ -21,4 +21,4 @@ This action returns Pong message.
 
     + Body
 
-            Pong
+            pong
