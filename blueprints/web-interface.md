@@ -3,26 +3,30 @@ FORMAT: 1A
 # Community Announcer API
 In this API makes your community announcements.
 
-## Health Check [/ping]
 
-### Retrieve a Pong Message [GET]
-This action returns Pong message.
+## User Operations [/user/{name}]
 
-+ Response
++ Parameters
+    + name: foo (string, required)
 
-    + StatusCode
 
-            200
+### Retrieve a User Without Value [GET]
+This action returns a Not Found User.
+
++ Response 200
 
     + Headers
 
             server: Cowboy
             connection: close
-            content-type: text/plain; charset=utf-8
+            content-type: application/json; charset=utf-8
             date: Sun, 22 Apr 2018 20:55:42 GMT
             content-length: 4
             via: 1.1 vegur
 
     + Body
 
-            pong
+            {
+                "status": "no value",
+                "user": "foo"
+            }
