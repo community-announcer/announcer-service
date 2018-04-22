@@ -7,9 +7,11 @@ services:
 install:
 - go get -u github.com/kardianos/govendor
 - govendor sync
-script:
-- go test
-after_success:
-- echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin registry.heroku.com
-- docker build -f Dockerfile -t registry.heroku.com/community-announcer/web .
-- docker push registry.heroku.com/community-announcer/web
+jobs:
+  include:
+    - stage: test
+      script: go test
+    - stage: deploy
+      script: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin registry.heroku.com
+      script: docker build -f Dockerfile -t registry.heroku.com/community-announcer/web .
+      script: docker push registry.heroku.com/community-announcer/web
