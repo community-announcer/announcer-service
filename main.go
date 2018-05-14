@@ -2,54 +2,40 @@ package main
 
 import (
 	"os"
+	"time"
 
+	"github.com/auth0-community/auth0"
+	cors "github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	jose "gopkg.in/square/go-jose.v2"
 )
 
-var DB = make(map[string]string)
-
 func setupRouter() *gin.Engine {
-	// Disable Console Color
-	// gin.DisableConsoleColor()
 	r := gin.Default()
 
-	r.GET("/ping", func(c *gin.Context) {
-		c.String(200, "pong")
-	})
-
-	r.GET("/user/:name", func(c *gin.Context) {
-		user := c.Params.ByName("name")
-		value, ok := DB[user]
-		if ok {
-			c.JSON(200, gin.H{"user": user, "value": value})
-		} else {
-			c.JSON(200, gin.H{"user": user, "status": "no value"})
-		}
-	})
-
-	// Authorized group (uses gin.BasicAuth() middleware)
-	// Same than:
-	// authorized := r.Group("/")
-	// authorized.Use(gin.BasicAuth(gin.Credentials{
-	//	  "foo":  "bar",
-	//	  "manu": "123",
-	//}))
-	authorized := r.Group("/", gin.BasicAuth(gin.Accounts{
-		"foo":  "bar", // user:foo password:bar
-		"manu": "123", // user:manu password:123
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"PUT", "PATCH", "DELETE", "GET", "POST"},
+		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
 	}))
 
-	authorized.POST("admin", func(c *gin.Context) {
-		user := c.MustGet(gin.AuthUserKey).(string)
+	secret := []byte(getEnv("API-CLIENT-SECRET", "FAKE"))
+	secretProvider := auth0.NewKeyProvider(secret)
+	audience := []string{getEnv("AUTH0-API-AUDIENCE", "FAKE")}
 
-		var json struct {
-			Value string `json:"value" binding:"required"`
-		}
+	configuration := auth0.NewConfiguration(secretProvider, audience, getEnv("AUTH0-DOMAIN", "FAKE"), jose.HS256)
+	validator := auth0.NewValidator(configuration, nil)
 
-		if c.Bind(&json) == nil {
-			DB[user] = json.Value
-			c.JSON(200, gin.H{"status": "ok"})
-		}
+	auth := AuthMiddleware{
+		Validator: validator,
+	}
+
+	r.GET("/user/:name", auth.CheckAuthentication(), func(c *gin.Context) {
+		user := c.Params.ByName("name")
+		c.JSON(200, gin.H{"user": user, "status": "no value"})
 	})
 
 	return r
