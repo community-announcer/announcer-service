@@ -22,11 +22,11 @@ func setupRouter() *gin.Engine {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	secret := []byte(getEnv("API-CLIENT-SECRET", "FAKE"))
+	secret := []byte(getEnv("API-CLIENT-SECRET", "FAKE-API-CLIENT-SECRET"))
 	secretProvider := auth0.NewKeyProvider(secret)
-	audience := []string{getEnv("AUTH0-API-AUDIENCE", "FAKE")}
+	audience := []string{getEnv("AUTH0-API-AUDIENCE", "FAKE-API-AUDIENCE")}
 
-	configuration := auth0.NewConfiguration(secretProvider, audience, getEnv("AUTH0-DOMAIN", "FAKE"), jose.HS256)
+	configuration := auth0.NewConfiguration(secretProvider, audience, getEnv("AUTH0-DOMAIN", "FAKE-DOMAIN"), jose.HS256)
 	validator := auth0.NewValidator(configuration, nil)
 
 	auth := AuthMiddleware{
