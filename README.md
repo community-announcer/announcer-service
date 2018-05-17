@@ -2,7 +2,6 @@
 Community Announcer Service [![Build Status](https://travis-ci.org/community-announcer/announcer-service.svg?branch=master)](https://travis-ci.org/community-announcer/announcer-service)
 
 Service Endpoint: https://community-announcer.herokuapp.com
-Service Ping Endpoint: https://community-announcer.herokuapp.com/ping
 
 This project using [The Vendor Tool for Go](https://github.com/kardianos/govendor)
 
