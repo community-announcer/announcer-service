@@ -72,7 +72,7 @@ func getEnv(key, fallback string) string {
 var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options {
 	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 		// Verify 'aud' claim
-		aud := getEnv("AUTH0-API-AUDIENCE", "FAKE-API-AUDIENCE")
+		aud := "https://community-announcer.eu.auth0.com/api/v2/"
 		checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
 		if !checkAud {
 			return token, errors.New("Invalid audience.")
