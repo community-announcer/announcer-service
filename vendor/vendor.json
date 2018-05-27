@@ -9,6 +9,24 @@
 			"revisionTime": "2018-05-14T19:12:36Z"
 		},
 		{
+			"checksumSHA1": "n2KWrxS+GQrPiFI/RQfKSj1nZTs=",
+			"path": "github.com/auth0/go-jwt-middleware",
+			"revision": "5493cabe49f7bfa6e2ec444a09d334d90cd4e2bd",
+			"revisionTime": "2017-04-25T17:11:59Z"
+		},
+		{
+			"checksumSHA1": "MwazWD3ttZyMbTOPrzp/XTKbhMo=",
+			"path": "github.com/codegangsta/negroni",
+			"revision": "22c5532ea862c34fdad414e90f8cc00b4f6f4cab",
+			"revisionTime": "2018-01-30T04:45:49Z"
+		},
+		{
+			"checksumSHA1": "4772zXrOaPVeDeSgdiV7Vp4KEjk=",
+			"path": "github.com/dgrijalva/jwt-go",
+			"revision": "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e",
+			"revisionTime": "2018-03-08T23:13:08Z"
+		},
+		{
 			"checksumSHA1": "V6gJx3kala+tjfo/ynTjg1u5OxI=",
 			"path": "github.com/gin-contrib/cors",
 			"revision": "6f0a820f94bea07359ec77c26855ca8cf6762739",
