@@ -72,11 +72,11 @@ func getEnv(key, fallback string) string {
 var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options {
 	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 		// Verify 'aud' claim
-		aud := getEnv("AUTH0-API-IDENTIFIER", "FAKE-API-IDENTIFIER")
-		checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
-		if !checkAud {
-			return token, errors.New("Invalid audience.")
-		}
+		//aud := getEnv("AUTH0-API-IDENTIFIER", "FAKE-API-IDENTIFIER")
+		//checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
+		//if !checkAud {
+		//	return token, errors.New("Invalid audience.")
+		//}
 		// Verify 'iss' claim
 		iss := getEnv("AUTH0-DOMAIN", "FAKE-DOMAIN")
 		checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(iss, false)
