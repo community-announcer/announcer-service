@@ -31,7 +31,7 @@ jobs:
       sudo: required
       services:
         - docker
-      script: docker run -it --rm -v $(pwd)/blueprints:/blueprints --entrypoint dredd burakince/docker-dredd /blueprints/*.md https://community-announcer-staging.herokuapp.com
+      script: docker run -it --rm -v $(pwd)/blueprints:/blueprints --entrypoint dredd burakince/docker-dredd:5.1.8 /blueprints/*.md https://community-announcer-staging.herokuapp.com
     - stage: Deploy to Production
       sudo: required
       services:
