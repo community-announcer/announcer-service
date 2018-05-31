@@ -8,7 +8,8 @@ jobs:
         - '1.10'
       cache:
         directories:
-          - $HOME/gopath/src/github.com/$TRAVIS_REPO_SLUG
+          - $HOME/gopath/src/
+          - !$HOME/gopath/src/github.com/$TRAVIS_REPO_SLUG
           - bin
       install:
         - go get -u github.com/kardianos/govendor
