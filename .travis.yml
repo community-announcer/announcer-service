@@ -9,7 +9,6 @@ jobs:
       cache:
         directories:
           - $HOME/gopath/src/github.com/$TRAVIS_REPO_SLUG
-          - vendor/bundle
           - bin
       install:
         - go get -u github.com/kardianos/govendor
