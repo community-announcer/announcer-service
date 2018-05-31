@@ -44,3 +44,5 @@ jobs:
         skip_cleanup: true
         file: bin/announcer-service
         on: master
+    - stage: Smoke Test for Production
+      script: "curl --fail -s https://community-announcer.herokuapp.com/.well-known/live"
