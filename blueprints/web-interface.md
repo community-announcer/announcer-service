@@ -4,13 +4,10 @@ FORMAT: 1A
 In this API makes your community announcements.
 
 
-## User Operations [/user/{name}]
-
-+ Parameters
-    + name: foo (string, required)
+## User Operations [/api/public]
 
 
-### Retrieve a User Without Value [GET]
+### Retrieve a Public Response [GET]
 This action returns a Not Found User.
 
 + Response 200
@@ -27,6 +24,5 @@ This action returns a Not Found User.
     + Body
 
             {
-                "status": "no value",
-                "user": "foo"
+                "message": "public api"
             }
