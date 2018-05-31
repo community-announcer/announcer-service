@@ -1,1 +1,0 @@
-worker: announcer-service

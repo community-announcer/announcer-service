@@ -6,18 +6,25 @@ jobs:
       language: go
       go:
         - '1.10'
+      cache:
+        directories:
+          - $HOME/gopath/src/github.com/$TRAVIS_REPO_SLUG
+          - vendor/bundle
+          - bin
       install:
         - go get -u github.com/kardianos/govendor
         - govendor sync
       script:
         - go test
-        - go build -o ./announcer-service .
+        - go build -o ./bin/announcer-service .
       deploy:
         provider: heroku
         buildpack: https://github.com/kr/heroku-buildpack-go.git
         api_key:
           secure: "YyhYsGyNZVIhqoT4c+JeiF4WbIZ7oeUswQ1CMKNEv7qWeAdZmJMpSsy/afs3F5DET+JgIKDtVofRF+nFOZD7q+RTeX2fmsE3Ahey5EYoW0cgV8/KoD6mVHaBGDFp8vc3MM9z5E9EKnWhNhquzmo5W4PDoal1J3KJNDez8V7DoRPllrwNXZ+GDiaM6TM5hhoKYr2AFnzyLXO6ShlZsMh6ji8b3bd/V24oN82iOJSqjUs2reZKpfGAnQ+QKSHAbB9flW0i3AusVhaxv3xv8IOslSix5TJv7iTRqsaf3n/iZyODHWhpTqs6vhtmsZfNzY8/Q9PyNLtdeDNaoObC78QO6qqw/10MS+GYL+c0wsOWANltdjJAQsdXXQx4GB7ZRUHlOpmkNocPCTgz7yo2LYLq/GPvB+MAZcu1S/wuFtNFmgb3cD7+ZrfWNNOKt30RWrQKbOQNIHfGKbqYnkI0Jh3m8cDyh0uhbAudHjKkHmerr08ZUOiYudU5w1IT1+cxcW/iqIMnurc2vkTCYMZEDM1TlPWaSPWpyWEaL3FZN5aQMiW/QKDvA2IlYfBmd1oOl6c6DTtDzvYlfTjlK+fjAWnXKcHB0aIbzcU/dsFXnnVLmK1N9WPWsMsCn4k4b28/hZWM+6SJIDw6Zeezgs9KwSDPyK5qvqDOlFqnDe8bQqMUxVM="
         app: community-announcer-staging
+        skip_cleanup: true
+        file: bin/announcer-service
         on: master
     - stage: Integration Test
       sudo: required
