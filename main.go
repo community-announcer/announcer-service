@@ -9,6 +9,13 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/auth0/go-jwt-middleware"
+	"encoding/base64"
+	"fmt"
+	"crypto/rsa"
+	"math/big"
+	"crypto/x509"
+	"encoding/pem"
+	"bytes"
 )
 
 type Response struct {
@@ -50,26 +57,6 @@ func setupRouter() *gin.Engine {
 
 	r.Use(corsMiddleware())
 
-	//r.Use(cors.New(cors.Config{
-	//	AllowOrigins:     []string{"*"},
-	//	AllowMethods:     []string{"PUT", "PATCH", "DELETE", "GET", "POST"},
-	//	AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
-	//	ExposeHeaders:    []string{"Content-Length"},
-	//	AllowCredentials: true,
-	//	MaxAge:           12 * time.Hour,
-	//}))
-	//
-	//secret := []byte(getEnv("API-CLIENT-SECRET", "FAKE-API-CLIENT-SECRET"))
-	//secretProvider := auth0.NewKeyProvider(secret)
-	//audience := []string{getEnv("AUTH0-API-AUDIENCE", "FAKE-API-AUDIENCE")}
-	//
-	//configuration := auth0.NewConfiguration(secretProvider, audience, getEnv("AUTH0-DOMAIN", "FAKE-DOMAIN"), jose.HS256)
-	//validator := auth0.NewValidator(configuration, nil)
-	//
-	//auth := AuthMiddleware{
-	//	Validator: validator,
-	//}
-
 	r.GET("/api/public", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "public api"})
 	})
@@ -91,13 +78,13 @@ func getEnv(key, fallback string) string {
 var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options {
 	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 		// Verify 'aud' claim
-		//aud := getEnv("AUTH0-API-IDENTIFIER", "FAKE-API-IDENTIFIER")
-		//checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
-		//if !checkAud {
-		//	return token, errors.New("Invalid audience.")
-		//}
+		aud := getEnv("AUTH0-API-IDENTIFIER", "a1b2c3d4")
+		checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
+		if !checkAud {
+			return token, errors.New("Invalid audience.")
+		}
 		// Verify 'iss' claim
-		iss := getEnv("AUTH0-DOMAIN", "FAKE-DOMAIN")
+		iss := getEnv("AUTH0-DOMAIN", "http://localhost/")
 		checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(iss, false)
 		if !checkIss {
 			return token, errors.New("Invalid issuer.")
@@ -148,7 +135,40 @@ func getPemCert(token *jwt.Token) (string, error) {
 
 	for k, _ := range jwks.Keys {
 		if token.Header["kid"] == jwks.Keys[k].Kid {
-			cert = "-----BEGIN CERTIFICATE-----\n" + jwks.Keys[k].X5c[0] + "\n-----END CERTIFICATE-----"
+			jwk := jwks.Keys[k]
+
+			// decode the base64 bytes for n
+			nb, err := base64.RawURLEncoding.DecodeString(jwk.N)
+			if err != nil {
+				return "", err
+			}
+
+			e := 0
+			if jwk.E == "AQAB" || jwk.E == "AAEAAQ" {
+				e = 65537
+			} else {
+				return cert, fmt.Errorf("unrecognized value for e: %s", jwk.E)
+			}
+
+			pk := &rsa.PublicKey{
+				N: new(big.Int).SetBytes(nb),
+				E: e,
+			}
+
+			der, err := x509.MarshalPKIXPublicKey(pk)
+			if err != nil {
+				return cert, err
+			}
+
+			block := &pem.Block{
+				Type:  "RSA PUBLIC KEY",
+				Bytes: der,
+			}
+
+			var out bytes.Buffer
+			pem.Encode(&out, block)
+
+			cert = out.String()
 		}
 	}
 
