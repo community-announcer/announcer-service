@@ -2,44 +2,25 @@ notifications:
   email: false
 jobs:
   include:
-    - stage: Test
+    - stage: Test and Deploy to Staging
       language: go
       go:
         - '1.10'
       install:
         - go get -u github.com/kardianos/govendor
         - govendor sync
-      script: go test
-    - stage: Build Docker Image
-      sudo: required
-      services:
-        - docker
       script:
-        - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
-        - docker build -f Dockerfile -t communityannouncer/announcer-service .
-        - docker push communityannouncer/announcer-service
-    - stage: Deploy to Staging
-      sudo: required
-      services:
-        - docker
-      script:
-        - docker pull communityannouncer/announcer-service
-        - docker tag communityannouncer/announcer-service registry.heroku.com/community-announcer-staging/web
-        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin registry.heroku.com
-        - docker push registry.heroku.com/community-announcer-staging/web
-        - export DOCKER_IMAGE_ID=$(docker inspect registry.heroku.com/community-announcer-staging/web --format={{.Id}})
-        - "curl -n -X PATCH https://api.heroku.com/apps/community-announcer-staging/formation -d '{\"updates\": [{\"type\": \"web\", \"docker_image\": \"$WEB_DOCKER_IMAGE_ID\"},]}' -H \"Content-Type: application/json\" -H \"Accept: application/vnd.heroku+json; version=3.docker-releases\""
+        - go test
+        - go build -o ./announcer-service .
+      deploy:
+        provider: heroku
+        buildpack: https://github.com/kr/heroku-buildpack-go.git
+        api_key:
+          secure: "YyhYsGyNZVIhqoT4c+JeiF4WbIZ7oeUswQ1CMKNEv7qWeAdZmJMpSsy/afs3F5DET+JgIKDtVofRF+nFOZD7q+RTeX2fmsE3Ahey5EYoW0cgV8/KoD6mVHaBGDFp8vc3MM9z5E9EKnWhNhquzmo5W4PDoal1J3KJNDez8V7DoRPllrwNXZ+GDiaM6TM5hhoKYr2AFnzyLXO6ShlZsMh6ji8b3bd/V24oN82iOJSqjUs2reZKpfGAnQ+QKSHAbB9flW0i3AusVhaxv3xv8IOslSix5TJv7iTRqsaf3n/iZyODHWhpTqs6vhtmsZfNzY8/Q9PyNLtdeDNaoObC78QO6qqw/10MS+GYL+c0wsOWANltdjJAQsdXXQx4GB7ZRUHlOpmkNocPCTgz7yo2LYLq/GPvB+MAZcu1S/wuFtNFmgb3cD7+ZrfWNNOKt30RWrQKbOQNIHfGKbqYnkI0Jh3m8cDyh0uhbAudHjKkHmerr08ZUOiYudU5w1IT1+cxcW/iqIMnurc2vkTCYMZEDM1TlPWaSPWpyWEaL3FZN5aQMiW/QKDvA2IlYfBmd1oOl6c6DTtDzvYlfTjlK+fjAWnXKcHB0aIbzcU/dsFXnnVLmK1N9WPWsMsCn4k4b28/hZWM+6SJIDw6Zeezgs9KwSDPyK5qvqDOlFqnDe8bQqMUxVM="
+        app: community-announcer-staging
+        on: master
     - stage: Integration Test
       sudo: required
       services:
         - docker
       script: docker run -it --rm -v $(pwd)/blueprints:/blueprints --entrypoint dredd burakince/docker-dredd:5.1.8 /blueprints/*.md https://community-announcer-staging.herokuapp.com
-    - stage: Deploy to Production
-      sudo: required
-      services:
-        - docker
-      script:
-        - docker pull communityannouncer/announcer-service
-        - docker tag communityannouncer/announcer-service registry.heroku.com/community-announcer/web
-        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin registry.heroku.com
-        - docker push registry.heroku.com/community-announcer/web
