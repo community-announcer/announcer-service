@@ -81,7 +81,7 @@ var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options {
 		aud := getEnv("AUTH0-API-IDENTIFIER", "a1b2c3d4")
 		checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
 		if !checkAud {
-			return token, errors.New("Invalid audience.")
+			return token, fmt.Errorf("Invalid audience. Expected: %s Current: %s",aud ,token.Claims.(jwt.MapClaims)["aud"].(string))
 		}
 		// Verify 'iss' claim
 		iss := getEnv("AUTH0-DOMAIN", "http://localhost/")
@@ -118,7 +118,7 @@ func checkJWT() gin.HandlerFunc {
 
 func getPemCert(token *jwt.Token) (string, error) {
 	cert := ""
-	domain := getEnv("AUTH0-DOMAIN", "FAKE-DOMAIN")
+	domain := getEnv("AUTH0-DOMAIN", "http://localhost/")
 	resp, err := http.Get(domain + ".well-known/jwks.json")
 
 	if err != nil {
@@ -137,10 +137,13 @@ func getPemCert(token *jwt.Token) (string, error) {
 		if token.Header["kid"] == jwks.Keys[k].Kid {
 			jwk := jwks.Keys[k]
 
-			// decode the base64 bytes for n
+			if jwk.Kty != "RSA" {
+				return cert, fmt.Errorf("invalid key type: %s", jwk.Kty)
+			}
+
 			nb, err := base64.RawURLEncoding.DecodeString(jwk.N)
 			if err != nil {
-				return "", err
+				return cert, err
 			}
 
 			e := 0
@@ -169,6 +172,7 @@ func getPemCert(token *jwt.Token) (string, error) {
 			pem.Encode(&out, block)
 
 			cert = out.String()
+			break
 		}
 	}
 
