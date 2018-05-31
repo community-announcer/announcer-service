@@ -87,7 +87,7 @@ var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options {
 		iss := getEnv("AUTH0-DOMAIN", "http://localhost/")
 		checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(iss, false)
 		if !checkIss {
-			return token, errors.New("Invalid issuer.")
+			return token, fmt.Errorf("Invalid issuer. Expected: %s Current: %s", iss, token.Claims.(jwt.MapClaims)["iss"].(string))
 		}
 
 		cert, err := getPemCert(token)
