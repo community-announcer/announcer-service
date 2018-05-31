@@ -31,6 +31,9 @@ jobs:
         - docker
       script: docker run -it --rm -v $(pwd)/blueprints:/blueprints --entrypoint dredd burakince/docker-dredd:5.1.8 /blueprints/*.md https://community-announcer-staging.herokuapp.com
     - stage: Deploy to Production
+      language: go
+      go:
+        - '1.10'
       deploy:
         provider: heroku
         buildpack: https://github.com/kr/heroku-buildpack-go.git

@@ -37,7 +37,7 @@ type JSONWebKeys struct {
 
 func corsMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "https://www.community-announcer.com")
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
@@ -55,7 +55,12 @@ func corsMiddleware() gin.HandlerFunc {
 func setupRouter() *gin.Engine {
 	r := gin.Default()
 
+	r.Use(gin.Recovery())
 	r.Use(corsMiddleware())
+
+	r.GET("/.well-known/live", func(c *gin.Context) {
+		c.Status(http.StatusNoContent)
+	})
 
 	r.GET("/api/public", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "public api"})
@@ -77,13 +82,12 @@ func getEnv(key, fallback string) string {
 
 var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options {
 	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
-		// Verify 'aud' claim
 		aud := getEnv("AUTH0-API-IDENTIFIER", "a1b2c3d4")
 		checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
 		if !checkAud {
 			return token, fmt.Errorf("Invalid audience. Expected: %s Current: %s",aud ,token.Claims.(jwt.MapClaims)["aud"].(string))
 		}
-		// Verify 'iss' claim
+
 		iss := getEnv("AUTH0-DOMAIN", "http://localhost/")
 		checkIss := token.Claims.(jwt.MapClaims).VerifyIssuer(iss, false)
 		if !checkIss {
