@@ -1,7 +1,7 @@
 {
 	"comment": "",
-	"ignore": "test",
 	"heroku.goVersion": "1.10",
+	"ignore": "test",
 	"package": [
 		{
 			"checksumSHA1": "6ZHG6vK4t+RLZg7RoL4aAtEENjQ=",
@@ -74,6 +74,12 @@
 			"path": "github.com/golang/protobuf/proto",
 			"revision": "e09c5db296004fbe3f74490e84dcd62c3c5ddb1b",
 			"revisionTime": "2018-03-28T16:31:53Z"
+		},
+		{
+			"checksumSHA1": "F7vsuKOVSMnFSi90odRxfhBEBeA=",
+			"path": "github.com/lib/pq",
+			"revision": "d34b9ff171c21ad295489235aec8b6626023cd04",
+			"revisionTime": "2018-03-27T07:18:24Z"
 		},
 		{
 			"checksumSHA1": "w5RcOnfv5YDr3j2bd1YydkPiZx4=",
