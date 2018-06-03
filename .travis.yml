@@ -36,6 +36,7 @@ jobs:
       go:
         - '1.10'
       install:
+        - go get -u github.com/kardianos/govendor
         - govendor sync
       deploy:
         provider: heroku
