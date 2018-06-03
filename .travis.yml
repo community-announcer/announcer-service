@@ -35,6 +35,8 @@ jobs:
       language: go
       go:
         - '1.10'
+      install:
+        - govendor sync
       deploy:
         provider: heroku
         buildpack: https://github.com/kr/heroku-buildpack-go.git
