@@ -1,21 +1,29 @@
 package main
 
 import (
+	"bytes"
+	"crypto/rsa"
+	"crypto/x509"
+	"database/sql"
+	"encoding/base64"
 	"encoding/json"
-	"net/http"
+	"encoding/pem"
 	"errors"
+	"fmt"
+	"log"
+	"math/big"
+	"net/http"
 	"os"
 
+	"github.com/auth0/go-jwt-middleware"
+	"github.com/community-announcer/announcer-service/persistance"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/auth0/go-jwt-middleware"
-	"encoding/base64"
-	"fmt"
-	"crypto/rsa"
-	"math/big"
-	"crypto/x509"
-	"encoding/pem"
-	"bytes"
+	_ "github.com/lib/pq"
+)
+
+var (
+	dp *persistance.PostgreSqlDraftProvider
 )
 
 type Response struct {
@@ -27,11 +35,11 @@ type Jwks struct {
 }
 
 type JSONWebKeys struct {
-	Kty string `json:"kty"`
-	Kid string `json:"kid"`
-	Use string `json:"use"`
-	N string `json:"n"`
-	E string `json:"e"`
+	Kty string   `json:"kty"`
+	Kid string   `json:"kid"`
+	Use string   `json:"use"`
+	N   string   `json:"n"`
+	E   string   `json:"e"`
 	X5c []string `json:"x5c"`
 }
 
@@ -63,11 +71,19 @@ func setupRouter() *gin.Engine {
 	})
 
 	r.GET("/api/public", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "public api"})
+		c.JSON(http.StatusOK, gin.H{"message": "public api"})
 	})
 
 	r.GET("/api/private", checkJWT(), func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "private api"})
+		c.JSON(http.StatusOK, gin.H{"message": "private api"})
+	})
+
+	r.GET("/api/drafts", checkJWT(), func(c *gin.Context) {
+		if drafts, err := dp.All(); err != nil {
+			c.JSON(http.StatusInternalServerError, err)
+		} else {
+			c.JSON(http.StatusOK, drafts)
+		}
 	})
 
 	return r
@@ -80,12 +96,12 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options {
+var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options{
 	ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
 		aud := getEnv("AUTH0-API-IDENTIFIER", "a1b2c3d4")
 		checkAud := token.Claims.(jwt.MapClaims).VerifyAudience(aud, false)
 		if !checkAud {
-			return token, fmt.Errorf("Invalid audience. Expected: %s Current: %s",aud ,token.Claims.(jwt.MapClaims)["aud"].(string))
+			return token, fmt.Errorf("Invalid audience. Expected: %s Current: %s", aud, token.Claims.(jwt.MapClaims)["aud"].(string))
 		}
 
 		iss := getEnv("AUTH0-DOMAIN", "http://localhost/")
@@ -106,6 +122,12 @@ var jwtMiddleware = jwtmiddleware.New(jwtmiddleware.Options {
 })
 
 func main() {
+	if db, err := sql.Open("postgres", os.Getenv("DATABASE_URL")); err != nil {
+		log.Fatalf("Error opening database: %q", err)
+	} else {
+		dp = &persistance.PostgreSqlDraftProvider{db}
+	}
+
 	r := setupRouter()
 
 	r.Run(":" + getEnv("PORT", "3000"))
